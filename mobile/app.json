@@ -1,0 +1,106 @@
+{
+  "expo": {
+    "name": "Outie",
+    "slug": "depart-preview",
+    "version": "0.4.0",
+    "orientation": "default",
+    "scheme": "depart-preview",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/images/outie-icon.png",
+    "ios": {
+      "bundleIdentifier": "ph.depart.preview",
+      "supportsTablet": true,
+      "appleTeamId": "VH29Y7YS77"
+    },
+    "android": {
+      "package": "ph.depart.preview"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/outie-icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-dev-client",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "18.0",
+            "enableSceneSupport": true
+          }
+        }
+      ],
+      "expo-sqlite",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Outie reads upcoming events to personalize your departure reminders."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Outie uses foreground photos for targeted visual checks.",
+          "photosPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Outie uses foreground photos for targeted visual checks.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Outie saves places using your current location.",
+          "locationAlwaysAndWhenInUsePermission": "Outie detects exits from your saved Home area to remind you what to bring.",
+          "isIosBackgroundLocationEnabled": true
+        }
+      ],
+      "expo-notifications",
+      "./plugins/with-local-notifications.cjs",
+      "expo-background-task",
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "ph.depart.preview.widgets",
+          "groupIdentifier": "group.ph.depart.preview",
+          "enablePushNotifications": false,
+          "widgets": [
+            {
+              "name": "OutieBeforeYouGo",
+              "displayName": "Before you go",
+              "description": "Your saved things and relevant rain advice at a glance. Open Outie for the full reminder.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium"
+                ]
+              }
+            },
+            {
+              "name": "OutieQuickReminder",
+              "displayName": "Quick reminder",
+              "description": "A private, compact reminder without calendar titles or item names.",
+              "ios": {
+                "supportedFamilies": [
+                  "accessoryRectangular",
+                  "accessoryCircular",
+                  "accessoryInline"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
