@@ -1,5 +1,5 @@
 import type { Place, State } from "../data/model.ts";
-import { homePlace } from "./outing-policy.ts";
+import { monitoredPlaces } from "./outing-policy.ts";
 
 export type MonitoringStatus =
   | "off"
@@ -23,7 +23,7 @@ export function locatedPlaces(state: State) {
 export function monitoringSetup(state: State): MonitoringStatus | null {
   if (state.demo || !state.outing.enabled) return "off";
   if (state.paused) return "paused";
-  if (!locatedPlaces(state).some(p => p.id === state.outing.homeId)) return "needs-place";
+  if (!monitoredPlaces(state).length) return "needs-place";
   if (!state.connections.Notifications) return "needs-notifications";
   if (!state.connections.Location) return "needs-background-access";
   return null; // Native permission and registration still need checking.
@@ -66,7 +66,7 @@ export async function synchronizeMonitoring(
     await stop();
     return "needs-background-access";
   }
-  const places = locatedPlaces(state).filter(p => p.id === homePlace(state)?.id);
+  const places = monitoredPlaces(state) as (Place & { latitude: number; longitude: number })[];
   if (places.length > 20) {
     await stop();
     throw new Error("iOS supports up to 20 monitored places.");

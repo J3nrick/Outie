@@ -1,7 +1,7 @@
 import { type Connection, type State, type Plan } from "../data/model";
 import { synchronizeMonitoring } from "./monitoring";
 import type { CalendarContext, OutingReminder } from "../data/outing";
-import { canDeliverOuting, reminderPreview } from "./outing-policy";
+import { canDeliverOuting, reminderPreview, departureReminder, monitoredPlaces } from "./outing-policy";
 export async function listCalendars() {
   if ((await permission("Calendar")) !== "granted") return [];
   const c = await import("expo-calendar");
@@ -26,8 +26,11 @@ export async function scheduleOuting(reminder: OutingReminder, test = false) {
   const s = saved.state;
   if (test ? s.demo || !s.connections.Notifications : !canDeliverOuting(s, reminder, Date.now())) return null;
   if (!test && (await (await import("expo-location")).getBackgroundPermissionsAsync()).status !== "granted") return null;
-  const current = reminderPreview(s, Date.now(), reminder.id);
-  if (!current.items.length) throw new Error("Add an everyday essential before testing a reminder.");
+  const current = test ? reminderPreview(s, Date.now(), reminder.id) : { ...departureReminder(s, Date.now(), reminder.placeId ?? s.automation?.placeId ?? s.outing.homeId ?? "", reminder.id), createdAt: reminder.createdAt };
+  if (!current.items.length) { await n.cancelScheduledNotificationAsync(reminder.id); return null; }
+  if (test) {
+    await saveSnapshot({ ...saved, revision: saved.revision + 1, state: { ...s, outing: { ...s.outing, history: [{ ...current, test: true }, ...s.outing.history.filter(r => r.id !== current.id)].slice(0, 20) } } }, saved.revision);
+  }
   if (!test) {
     // Keep the persisted tap destination identical to the fresh notification contents.
     const existing = [...await n.getAllScheduledNotificationsAsync(), ...await n.getPresentedNotificationsAsync()];
@@ -159,13 +162,16 @@ export async function scheduleCheck(
 export async function syncReminder(state: State) {
   const n = await import("expo-notifications");
   const scheduled = await n.getAllScheduledNotificationsAsync();
+  const selectedIds = new Set(monitoredPlaces(state).map(p => p.id));
+  const acknowledged = new Set(state.outing.history.filter(r => r.acknowledgedAt).map(r => r.id));
+  for (const notification of await n.getPresentedNotificationsAsync()) if (acknowledged.has(notification.request.identifier)) await n.dismissNotificationAsync(notification.request.identifier);
   const l = await import("expo-location");
   const allowed = state.outing.enabled && !state.paused && !state.demo && state.connections.Location && state.connections.Notifications &&
     (await permission("Notifications")) === "granted" && (await l.getBackgroundPermissionsAsync()).status === "granted";
   for (const request of scheduled) {
     // Retire old checklist/pre-event reminders, which do not implement every-outing behavior.
-    if (/^(preparation|departure|snooze)-/.test(request.identifier) ||
-        (request.identifier.startsWith("outing-") && (!allowed || !state.places.some(p => p.id === state.outing.homeId))))
+    if (acknowledged.has(request.identifier) || /^(preparation|departure|snooze)-/.test(request.identifier) ||
+        (request.identifier.startsWith("outing-") && (!allowed || !selectedIds.size || state.outing.history.some(r => r.id === request.identifier && r.placeId && !selectedIds.has(r.placeId)) || !reminderPreview(state, Date.now()).items.length || state.outing.history.some(r => r.id === request.identifier && r.acknowledgedAt))))
       await n.cancelScheduledNotificationAsync(request.identifier);
   }
 }

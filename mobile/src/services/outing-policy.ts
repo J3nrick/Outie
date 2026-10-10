@@ -1,5 +1,6 @@
 import type { State } from "../data/model.ts";
 import type { CalendarContext, ContextItem, OutingReminder } from "../data/outing.ts";
+import { itemChecked } from "./checks.ts";
 import { forecastIsFresh, rainToday } from "./weather.ts";
 export function homePlace(s: State) { return s.places.find(p => p.id === s.outing.homeId); }
 export function contextKey(s: State) {
@@ -16,7 +17,7 @@ export function relevantEvents(events: CalendarContext[], now: number) {
       end > now && !/\b(zoom|teams|google meet|virtual|online|video call)\b/i.test(`${e.title} ${e.destination}`);
   }).sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)).slice(0, 1);
 }
-export function reminderPreview(s: State, now: number, id = `outing-${now}`): OutingReminder {
+export function preparationReminder(s: State, now: number, id = `outing-${now}`): OutingReminder {
   const items: ContextItem[] = s.essentials.map(name => ({ name, reason: "Your everyday essential.", source: "routine" }));
   const c = s.outing.context;
   const valid = c && c.inputKey === contextKey(s) && c.preparedAt <= now && c.expiresAt > now;
@@ -46,9 +47,25 @@ export function reminderPreview(s: State, now: number, id = `outing-${now}`): Ou
   if (body.length > 360) body = `Remember ${list(unique.map(i => i.name))}. Tap to see why.`;
   return { id, createdAt: now, title: "Heading out?", body, items: unique, eventTitle: events[0]?.title };
 }
+export function monitoredPlaces(s: State) {
+  return s.places.filter(p => s.outing.monitoredPlaceIds.includes(p.id) && Number.isFinite(p.latitude) && Math.abs(p.latitude!) <= 90 && Number.isFinite(p.longitude) && Math.abs(p.longitude!) <= 180 && Number.isFinite(p.radius) && p.radius > 0);
+}
+export function reminderPreview(s: State, now: number, id = `outing-${now}`): OutingReminder {
+  const all = preparationReminder(s, now, id);
+  const items = all.items.filter(i => !itemChecked(s, i.name, now));
+  const list = items.slice(0, 4).map(i => i.name).join(", ") + (items.length > 4 ? ` and ${items.length - 4} more` : "");
+  return { ...all, title: "Still to check", items, allItems: all.items, checklistId: s.outing.checklist.id,
+    body: items.length ? `Still unchecked: ${list}.` + (items.some(i => i.eventId) && all.eventTitle ? ` If you're heading to ${all.eventTitle}, check your event items.` : "") + (items.some(i => i.source === "weather") ? " Rain is forecast near Home—consider an umbrella." : "") : all.items.length ? "You confirmed every item for this outing. Confirming does not prove anything is packed." : "Choose your everyday essentials in Outie." };
+}
+export function departureReminder(s: State, now: number, placeId: string, id: string): OutingReminder {
+  const reminder = reminderPreview(s, now, id);
+  const placeName = s.places.find(p => p.id === placeId)?.name ?? "saved place";
+  return { ...reminder, placeId, placeName, title: `Left ${placeName}?`, body: `Your phone left the ${placeName} area. ${reminder.body}`.slice(0, 500) };
+}
 export function canDeliverOuting(s: State, reminder: OutingReminder, now: number) {
   const pending = s.automation?.pending;
   return s.outing.enabled && !s.paused && !s.demo && s.connections.Location && s.connections.Notifications &&
-    Number.isFinite(homePlace(s)?.latitude) && Number.isFinite(homePlace(s)?.longitude) && pending?.reminder?.id === reminder.id && !pending.deliveredAt &&
+    monitoredPlaces(s).some(p => p.id === (reminder.placeId ?? s.automation?.placeId ?? s.outing.homeId)) &&
+    (!reminder.checklistId || reminder.checklistId === s.outing.checklist.id) && !reminder.acknowledgedAt && pending?.reminder?.id === reminder.id && !pending.deliveredAt &&
     s.automation?.outside === true && now >= reminder.createdAt && now - reminder.createdAt <= 600000;
 }

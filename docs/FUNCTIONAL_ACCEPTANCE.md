@@ -4,7 +4,9 @@ The user authorized steps 1–7 on October 10, 2026. This opens the live integra
 
 ## Latest active journey
 
-The checklist-first paths below are historical retained integrations. The active UI is now Today · My things · Settings with optional Calendar/weather context and explicit Home departure reminders. See [SIMPLE_OUTING_PLAN.md](SIMPLE_OUTING_PLAN.md) for the implementation and 36-test evidence. Every outing includes everyday essentials; old checklist confirmations do not suppress it. Background context refresh is best effort, separate from the cached-context exit policy. No cloud AI or tracker access is claimed.
+The checklist-first paths below are historical retained integrations. The active UI is now Today · My things · Settings with optional Calendar/weather context and explicit Home departure reminders. See [UNCHECKED_REMINDERS.md](UNCHECKED_REMINDERS.md) and TESTING.md for the latest 52-test evidence. Only current-outing unchecked items appear in exit notifications; all checked suppresses the alert. Historical plan confirmations never silently suppress a new outing. Item details retain manual/visual timestamps and explicitly recorded location evidence; Got it acknowledges one reminder without checking items. Background context refresh is best effort, separate from the cached-context exit policy. No cloud AI or tracker access is claimed.
+
+Home Screen/Lock Screen widgets and a Settings guide were subsequently added; see WIDGETS.md and TESTING.md. Actual simulator rendering/tap/update checks passed. The signed SE update installed, but physical launch and placement were not verified because the phone was locked and the user requested simulator-only completion.
 
 The physical acceptance gates below remain open for the redesigned flow. A compiled Foundation Models bridge, simulator model status, or sample demo does not establish physical offline inference or locked-background departure delivery.
 
@@ -25,8 +27,8 @@ The physical acceptance gates below remain open for the redesigned flow. A compi
 | 1. UI | Full VoiceOver audio, reduced-motion/transparency, keyboard, and physical layouts need dedicated review after functional changes. |
 | 2. Persistence | Native terminate/relaunch and browser reload observed; scoped round-trip/corrupt input unit tests pass. Injected native disk-write failure remains to test. |
 | 3. AI | Simulator generation observed; compatible physical iPhone offline acceptance remains required. |
-| 4. Device connections | Real simulator notification permission and OS banner observed. Native denial/revocation, real event selection, photo capture and physical delivery need hardware checks. Notification-tap cold/warm landing remains to exercise. |
-| 5. Automation | Unit policy checks do not establish real locked/background geofence delivery or latency. |
+| 4. Device connections | Real simulator notification permission and OS banner observed. Native denial/revocation, real event selection, photo capture and physical delivery need hardware checks. Current outing test-notification tap landing passed in the simulator; physical cold/warm launch and permission-revocation checks remain. |
+| 5. Automation | Unchecked/all-checked, known-entry, return/reset, selected/overlapping regions and acknowledgement policy tests pass. The iOS 27 simulator reports circular-region monitoring unavailable; real locked/background delivery and latency need a physical iPhone. |
 | 6. Vision | Actual-object positive/negative comparison, lighting/occlusion and uncertainty testing required. No calibrated automatic recognition threshold is claimed. |
 | 7. Cloud/trackers | Cloud provider unavailable without verified Apple access. User has no tracker; support remains unavailable until a documented accessory/SDK is selected. |
 

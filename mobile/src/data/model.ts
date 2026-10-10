@@ -1,4 +1,5 @@
 import { defaultOuting, type OutingSettings, type OutingContext, type Routine } from "./outing.ts";
+import { itemKey, checksCurrent, nextChecklist } from "../services/checks.ts";
 import { contextKey } from "../services/outing-policy.ts";
 export type Item = {
   id: string;
@@ -129,6 +130,11 @@ export function unresolved(plan: Plan | null): Item[] {
   return plan?.items.filter((i) => i.status === "unchecked") ?? [];
 }
 export type Action =
+  | { type: "checkThing"; name: string; checked: boolean; checklistId: string; at: number }
+  | { type: "newOuting"; at: number }
+  | { type: "recordThingLocation"; name: string; label: string; at: number; source: "user" | "phone"; latitude?: number; longitude?: number }
+  | { type: "monitoredPlaces"; ids: string[] }
+  | { type: "acknowledgeOuting"; id: string; at: number }
   | { type: "outingEnabled"; enabled: boolean }
   | { type: "outingHome"; place: Place }
   | { type: "setupStep"; step: number }
@@ -171,6 +177,28 @@ export type Action =
   | { type: "clearNotice" }
   | { type: "reset" };
 export function reduce(s: State, a: Action): State {
+  if (a.type === "newOuting") return { ...s, outing: { ...s.outing, checklist: nextChecklist(s.outing, a.at) }, automation: s.automation ? { ...s.automation, pending: undefined } : undefined };
+  if (a.type === "monitoredPlaces") return { ...s, outing: { ...s.outing, monitoredPlaceIds: [...new Set(a.ids)].slice(0, 20) }, automation: undefined };
+  if (a.type === "checkThing") {
+    if (a.checklistId !== s.outing.checklist.id || !a.name.trim() || !Number.isFinite(a.at)) return s;
+    const key = itemKey(a.name);
+    const checklist = checksCurrent(s, a.at) ? s.outing.checklist : nextChecklist(s.outing, a.at);
+    const checks = checklist.checks.filter(c => c.key !== key);
+    if (a.checked) checks.push({ key, confirmedAt: a.at });
+    const previous = s.outing.evidence.find(e => e.key === key);
+    const evidence = a.checked ? [...s.outing.evidence.filter(e => e.key !== key), { ...previous, key, name: a.name.trim(), confirmedAt: a.at }].slice(-200) : s.outing.evidence;
+    return { ...s, outing: { ...s.outing, checklist: { ...checklist, checks }, evidence } };
+  }
+  if (a.type === "recordThingLocation") {
+    if (!a.name.trim() || !a.label.trim() || a.label.trim().length > 200 || !Number.isFinite(a.at) ||
+      (a.source === "phone" && (!Number.isFinite(a.latitude) || Math.abs(a.latitude!) > 90 || !Number.isFinite(a.longitude) || Math.abs(a.longitude!) > 180))) return s;
+    const key = itemKey(a.name), previous = s.outing.evidence.find(e => e.key === key);
+    return { ...s, outing: { ...s.outing, evidence: [...s.outing.evidence.filter(e => e.key !== key), { ...previous, key, name: a.name.trim(), location: { label: a.label.trim(), at: a.at, source: a.source, ...(a.source === "phone" ? { latitude: a.latitude, longitude: a.longitude } : {}) } }].slice(-200) } };
+  }
+  if (a.type === "acknowledgeOuting") {
+    const history = s.outing.history.map(r => r.id === a.id ? { ...r, acknowledgedAt: a.at } : r);
+    return { ...s, outing: { ...s.outing, history }, automation: s.automation?.id === a.id ? { ...s.automation, pending: undefined, acknowledgedAt: a.at } : s.automation };
+  }
   if (a.type === "reset") return initialState();
   if (a.type === "outingEnabled") return {
     ...s, paused: a.enabled ? false : s.paused,
@@ -179,7 +207,7 @@ export function reduce(s: State, a: Action): State {
   };
   if (a.type === "outingHome") return {
     ...s, places: [...s.places.filter(p => p.id !== a.place.id), a.place],
-    outing: { ...s.outing, homeId: a.place.id, context: null },
+    outing: { ...s.outing, homeId: a.place.id, context: null, monitoredPlaceIds: s.outing.monitoredPlaceIds.length ? s.outing.monitoredPlaceIds : [a.place.id] },
     automation: undefined,
   };
   if (a.type === "setupStep") return { ...s, outing: { ...s.outing, setupStep: Math.max(0, Math.min(3, a.step)) } };
@@ -256,7 +284,7 @@ export function reduce(s: State, a: Action): State {
       places: [...s.places.filter((x) => x.id !== a.place.id), a.place],
     };
   if (a.type === "removePlace")
-    return { ...s, places: s.places.filter((x) => x.id !== a.id) };
+    return { ...s, places: s.places.filter((x) => x.id !== a.id), outing: { ...s.outing, monitoredPlaceIds: s.outing.monitoredPlaceIds.filter(id => id !== a.id), context: s.outing.homeId === a.id ? null : s.outing.context }, automation: s.automation?.placeId === a.id ? undefined : s.automation };
   if (a.type === "connection")
     return { ...s, connections: { ...s.connections, [a.kind]: a.enabled } };
   if (a.type === "pause") return { ...s, paused: a.enabled };

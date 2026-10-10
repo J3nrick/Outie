@@ -1,5 +1,7 @@
 # DEPART — final implementation plan
 
+**Current behavior (0.5.0):** [Unchecked reminders and item evidence](UNCHECKED_REMINDERS.md) supersedes conflicting earlier policy below. Current-outing confirmations filter exit alerts; all checked suppresses delivery. Selected saved areas, historical confirmation/recorded-location details and matching-reminder acknowledgement are implemented. See TESTING.md for 52-test/native notification evidence and the simulator geofencing limitation. Earlier design/roadmap sections remain historical.
+
 Finalized October 9, 2026, Asia/Manila. This document is the active implementation roadmap and supersedes conflicting delivery order in earlier reports. The original brief and SwiftUI evidence remain historical records. The user selected React Native, UI first with mock data, and both phone-only departure alerts and later tracker-assisted separation detection.
 
 ## Current implementation — October 10, 2026

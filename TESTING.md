@@ -1,5 +1,82 @@
 # Verification reports
 
+## October 10, 2026 — final code cleanup
+
+Removed unused Expo starter images/Icon Composer template, the source-reset scaffold command and three unused React imports. Enabled noUnusedLocals/noUnusedParameters for future checks. Removed starter files are backed up outside the repository at /tmp/outie-unused-starter-backup. Retained referenced Outie artwork, font licences, existing feature routes and the SwiftUI reference.
+
+After cleanup: 52 tests passed with zero failures, strict TypeScript and Expo lint passed, web export passed, and the signed simulator Release build succeeded. Installed and launched the cleaned build; Today/My things/Settings navigation and a fresh native local-model sample call succeeded. Build warnings came from generated Hermes/Expo/Pods tooling; no application compilation errors were observed.
+
+The independent video project lives in video/ and does not add dependencies to the mobile app. Removed the video starter’s optional lint/format dependency chain after npm reported an unpatched braces development-tool advisory; its subsequent dependency audit reports zero vulnerabilities. Strict video TypeScript checks passed. Six representative 1920 × 1080 frames were rendered and visually reviewed; Studio reports 1800 frames at 30 fps (60 seconds) and no current runtime error. The preview is caption-led without audio; an MP4 export has not been performed. Logs are /tmp/outie-submission-clean-tests.log, /tmp/outie-submission-clean-native.log and /tmp/outie-submission-clean-web.log.
+
+## October 10, 2026 — notification identity cache refresh
+
+The shipping iOS AppIcon was inspected directly: it contains the red Outie doorway asset and the built plist registers AppIcon as its primary icon. The earlier green DEPART Preview notification identity was an OS cache artifact after upgrading the same bundle. Restarted only the iPhone 17 Pro simulator, without uninstalling the app or clearing data. A fresh real OS test banner visibly showed the red Outie doorway logo with Outie · test reminder and the current unchecked Keys/Wallet. Typecheck and Expo lint passed. No rebuild or source change was necessary. Physical-device notification branding was not checked.
+
+## October 10, 2026 — unchecked reminders and retained item evidence (0.5.0)
+
+Implemented [current item-check policy](docs/UNCHECKED_REMINDERS.md), last confirmation/recorded-location details, matching-outing acknowledgement, multiple selected watched places and unchecked widget projections. This supersedes the earlier every-outing/no-checklist suppression policy below.
+
+| Check actually executed | Result |
+|---|---|
+| TypeScript / Expo lint | Passed, no errors or warnings |
+| Automated state/persistence/context/widget/error tests | **52 passed, 0 failed**; includes 10 new check/evidence/exit/migration tests and native error presentation |
+| Signed simulator Release build and install | Passed; Outie 0.5.0 and embedded widget extension, existing data retained |
+| Native check and persistence | Keys checked / Wallet unchecked; actual terminate/install/relaunch retained state and timestamp |
+| Native notification scheduling/delivery | Actual OS test alert contained only Wallet, excluded Keys, and tapped through to the matching saved reminder |
+| Acknowledgement | Got it became Acknowledged; Wallet remained unchecked; final build also showed new test history immediately without resuming the app |
+| All checked | Native UI showed every item confirmed; Send a test reminder returned No test alert sent, without changing the latest notification record |
+| Reset checks | Start a new outing restored unchecked Keys/Wallet while retaining Keys' last confirmation time |
+| Widget regression | Native Lock Screen count updated to 1 unchecked item; unit cases cover all-checked presentation and 12-hour expiry fallback; prior small/medium placement evidence below remains applicable |
+| Browser check/evidence | Recorded-place and checkbox state survived reload; all-checked presentation and reset retained historical evidence |
+| Browser navigation/demo/guide | Three tabs, missing-item recovery, item details, both widget guide branches and all three demo steps passed; demo confirmation excluded sample Keys without changing personal essentials |
+| Large text | Actual simulator accessibility-large layout inspected; text wraps, screen scrolls to the bottom, dock remains usable; original large size restored |
+| Native location adapter | Explicitly simulated phone coordinates captured for a temporary saved place; removed after the test |
+| Saved-area monitoring | **Blocked by simulator:** native GeofencingUnavailable / circular-region availability false. UI gives a short actionable message and never claims monitoring active. Actual exit delivery remains unverified. |
+| Physical phone | Not changed; preserved the user's simulator-only verification preference |
+
+Audit fixes: raw native geofencing stack messages, nested web buttons, missing return destinations for item/Places flows, and newly scheduled test history not refreshing until app resume. No test fixture is described as AI output or a real departure. Temporary place/browser essential were removed; simulated GPS cleared; reminders off. Labelled test history and genuine historical evidence remain retained.
+
+### Final feature inventory and remaining gates
+
+- Navigation, checks, details, save/reload, demo separation, acknowledgement, notification-tap routing and widget projection have the executed evidence above.
+- Calendar selection, foreground camera/Vision review, Open-Meteo fetch/expiry and native local inference retain their existing integration/tests and prior results. This audit does **not** establish real Calendar event selection, actual-object camera comparison or compatible-phone offline inference. Native Settings reports actual model availability; a fresh isolated sample call in the final 0.5.0 build returned Local suggestions prepared on this device. The sample Calendar/weather remain simulated. Browser fallback is explicit.
+- Automatic region exit policy has unchecked/all-checked, known-entry, overlap, return, duplicate, pause/disabled and stale-context coverage. Locked/background physical exits, permission revocation, force quit/reboot, Focus and OS latency still need hardware acceptance.
+- Accessibility checkbox labels/states were observed. The new Today screen was also inspected at accessibility-large; spoken VoiceOver, full new-flow Reduce Motion/Transparency and physical widget placement remain dedicated checks.
+- Persistence corruption/migration checks pass; injected native disk-write failure is still an open acceptance gate. No tracker or cloud AI provider was enabled.
+
+Logs: `/tmp/outie-unchecked-final-tests.log`, `/tmp/outie-unchecked-web.log`, `/tmp/outie-unchecked-reviewed-release.log`. Captures: `docs/screenshots/outie-unchecked-notification.png`, `docs/screenshots/outie-acknowledged-test.png`, `docs/screenshots/outie-unchecked-large-text.png`.
+
+Next: install 0.5.0 on an unlocked physical iPhone, verify a selected saved-area known entry → exit with one unchecked item, then all checked, return/reset, acknowledgement, pause/off and permission revocation. Use an Apple Intelligence-compatible iPhone for separate offline inference acceptance; the SE tests the essentials fallback.
+
+## October 10, 2026 — Home Screen and Lock Screen widgets
+
+Implemented [Outie widgets](docs/WIDGETS.md) and Settings → Add Outie widgets in version 0.4.0. The existing reminder flow, personal records and SwiftUI reference remain intact.
+
+| Check actually executed | Result |
+|---|---|
+| TypeScript / Expo lint | Passed, no errors or warnings |
+| State/context/widget tests | 41 passed, 0 failed; 5 new widget projection/privacy/timeline cases |
+| Browser export and guide | Passed; both Home Screen and Lock Screen guide branches rendered |
+| Native simulator Release build | Passed with the embedded `ExpoWidgetsTarget.appex` |
+| Simulator App Group | Confirmed `group.ph.depart.preview` container; both targets use matching simulated entitlements |
+| Home Screen small widget | Added through the real system gallery; title and separate item rows render saved Keys/Wallet |
+| Home Screen medium widget | Resized through the real context menu; saved items, total count, preparation time and Reminders off render correctly |
+| Widget update | Added a temporary Widget test item in My things; widget reflected the extra item, then returned to the original essentials after removal |
+| Lock Screen rectangular widget | Added through the system picker, saved and visually verified; displays Before you go / 2 things to remember without item names or event details |
+| Widget taps | Both Home Screen and Lock Screen taps opened Today |
+| Native guide | Settings entry, both instruction sets, actual publication time and refresh control observed; shared timeline readback verified by the service |
+| Signed iPhone SE / iOS 27.0.1 build | Passed using the existing Personal Team; widget/App Group provisioning succeeded |
+| Physical phone installation | Updated `ph.depart.preview` installed; existing app data retained |
+| Physical launch / widget placement | **Not verified:** phone was locked and iOS denied launch. User selected “Finish with simulator verification for now.” No further physical launch or placement attempted. |
+
+The first unsigned simulator build rendered blank widgets because no App Group container was assigned; the extension log reported “client is not entitled.” Rebuilding with simulator signing enabled and local identity `-` generated the simulated App Group entitlements, and the container and actual rendering were then verified. Do not use `CODE_SIGNING_ALLOWED=NO` when validating shared-data widgets in this simulator setup.
+
+The Lock Screen customization overlay initially drew inconsistently in Device Hub. It recovered during native navigation; the widget was then saved, visually verified on the actual Lock Screen, and tapped successfully. Circular/inline variants are registered and compiled; the rectangular variant was the Lock Screen configuration exercised.
+
+Logs: `/tmp/outie-widget-tests-final.log`, `/tmp/outie-widget-web.log`, `/tmp/outie-widget-simulator-polish.log`, `/tmp/outie-widget-phone-final.log`. Captures: `docs/screenshots/outie-home-widget.png`, `outie-home-widget-medium.png`, `outie-lock-widget.png`.
+
+Next: on the SE, unlock and open Outie once, then follow Settings → Add Outie widgets. Verify physical placement, taps, light/dark/tinted modes, large text, VoiceOver and actual OS refresh/expiry while the app is closed. Native widget expiry is a supplied timeline; unit tests establish the correct future entries, not a guarantee of exact OS refresh time. Real Home-exit and compatible-phone offline inference acceptance remain separate from widget validation.
+
 ## October 10, 2026 — simple outing reminder release
 
 Active scope: [SIMPLE_OUTING_PLAN.md](docs/SIMPLE_OUTING_PLAN.md). This supersedes the checklist-first main journey; historical reference evidence below remains intact.

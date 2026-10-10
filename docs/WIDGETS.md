@@ -1,11 +1,11 @@
 # Outie widgets
 
-The user authorized Home Screen and Lock Screen widgets and a Settings guide on October 10, 2026. This extends the simple outing reminder release without requiring daily checking or enabling monitoring automatically.
+The user authorized Home Screen and Lock Screen widgets and a Settings guide on October 10, 2026. This extends the simple outing reminder release without enabling monitoring automatically. The later unchecked-item policy in UNCHECKED_REMINDERS.md now supplies the widget counts.
 
 ## What they show
 
 - **Before you go:** small and medium Home Screen sizes. Saved everyday and valid contextual items, rain advice when supported by a fresh forecast, preparation time and an honest reminder-intent label. Long lists summarize and open the app for full details.
-- **Quick reminder:** rectangular, circular and inline Lock Screen sizes. Only a total item count and generic umbrella advice. Calendar titles, reasons, item names and coordinates are absent from the Lock Screen payload.
+- **Quick reminder:** rectangular, circular and inline Lock Screen sizes. Only the remaining unchecked item count, an all-confirmed status when applicable, and generic umbrella advice. Calendar titles, reasons, item names and coordinates are absent from the Lock Screen payload.
 - Both tap through to Today, or Welcome when setup is incomplete. Native system typography scales with Dynamic Type; the app guide uses the existing Satoshi hierarchy and red/Solar visual language. Home widget colors adapt to dark and tinted rendering; Lock Screen appearance follows the system.
 - Empty data directs users to choose things. Demo/checklist history does not feed the widget. Widgets do not detect a departure, run fresh AI, certify packing or claim that monitoring is active from stored permission flags.
 
@@ -29,10 +29,23 @@ The app includes both step lists, live-data layout previews, publication status,
 
 ## Validation
 
-Initial source validation: TypeScript and lint passed; 41 tests passed. Five new tests verify the reminder projection, Lock Screen privacy, timeline expiry without app launch, input changes and demo isolation, and empty/paused/off states and tap routes. The web export and both guide branches render successfully. Native build, actual widget-gallery rendering, tap navigation and physical signing evidence are recorded in TESTING.md as checks finish; simulator evidence does not establish physical installation or OS refresh timing.
+Final source validation: TypeScript and lint passed; 41 tests passed. Five new tests verify the reminder projection, Lock Screen privacy, timeline expiry without app launch, input changes and demo isolation, and empty/paused/off states and tap routes. The web export and both guide branches render successfully. Native simulator build, actual small/medium Home Screen and rectangular Lock Screen rendering, live item-edit publication and both tap routes passed. The signed SE build and installation also passed; launch was blocked by the locked phone, and the user chose simulator-only completion. Physical widget placement/rendering is unverified. See TESTING.md for evidence and remaining checks.
 
 ## Sources
 
 - [Expo SDK 57 Widgets](https://docs.expo.dev/versions/v57.0.0/sdk/widgets/): families, pure layout/runtime, App Group and timeline APIs.
 - [Apple widget instructions](https://support.apple.com/en-us/118610): Home Screen and Lock Screen placement.
 - [Apple capability table](https://developer.apple.com/help/account/reference/supported-capabilities-ios/): App Groups is listed for the no-cost Apple Developer tier as well as paid programs. Actual profiles and device signing must still be verified; no paid-membership requirement is assumed from older advice.
+
+## Repeat the simulator build
+
+Use local simulator signing so Xcode embeds the simulated App Group entitlements:
+
+```sh
+xcodebuild -workspace mobile/ios/Outie.xcworkspace -scheme Outie \
+  -configuration Release -destination 'id=1523E7BD-3450-4D04-AC42-2DFA020AED4F' \
+  -derivedDataPath build/RNPhoneDerivedData \
+  CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=YES CODE_SIGN_IDENTITY=- build
+```
+
+Keep signing settings for physical builds separate; their development profiles must include the same App Group on both targets. The existing Personal Team successfully provisioned both in this session.

@@ -1,8 +1,8 @@
 # Outie
 
-The active DEPART project app is Outie: “Head out. Less left behind.” It reminds users of everyday essentials on each detected Home outing, with optional Calendar routines, local Apple Intelligence suggestions and Open-Meteo rain advice. Setup is resumable, permissions are contextual, and the demo is isolated. Existing checklist/camera code and personal records remain recoverable outside the primary journey.
+The active DEPART project app is Outie: “Head out. Less left behind.” It reminds users of unchecked essentials when their phone leaves a selected saved area, with optional Calendar routines, local Apple Intelligence suggestions and Open-Meteo rain advice. Confirmations apply to the current outing; item details retain last confirmation and explicitly recorded location evidence. Got it acknowledges only one reminder. Setup is resumable, permissions are contextual, and the demo is isolated. Existing checklist/camera code and personal records remain recoverable outside the primary journey.
 
-Read [the simple outing scope and evidence](../docs/SIMPLE_OUTING_PLAN.md). The app uses SQLite, Satoshi, Solar icons, the native glass dock, and Expo scroll-edge blur. Real-device background delivery and compatible-iPhone offline inference remain acceptance gates.
+Read [the current unchecked-reminder policy and evidence](../docs/UNCHECKED_REMINDERS.md). The app uses SQLite, Satoshi, Solar icons, the native glass dock, and Expo scroll-edge blur. Real-device background delivery and compatible-iPhone offline inference remain acceptance gates.
 
 ## Run
 
@@ -25,13 +25,17 @@ xcodebuild -workspace ios/Outie.xcworkspace -scheme Outie \
   -derivedDataPath ../build/RNPhoneDerivedData -allowProvisioningUpdates build
 ```
 
+## Widgets
+
+Version 0.5.0 includes small/medium Home Screen and private Lock Screen widgets. Open the installed app once, then use **Settings → Add Outie widgets** for both placement guides and a refresh action. The browser can show the guide but cannot install widgets. [Implementation and build notes](../docs/WIDGETS.md). Simulator widget validation needs signing enabled with local identity `-` so the App Group entitlement is applied; an unsigned build can launch the app but cannot share widget data.
+
 ## Review the journey
 
 1. Open Outie. Use the permission-free rain + school example first; its departure is simulated and sample data never enters your personal records. Its optional AI button calls the actual provider on supported native builds.
 2. Set up reminders: save Home, select everyday things, optionally connect Calendar/routines and enable rain advice, then explicitly Start. Do this later leaves monitoring off and setup editable.
-3. Today previews the current reminder and explains sources/freshness. My things edits everyday/routine items. Settings manages context, Home setup, approved preferences and actual model readiness.
+3. Today previews only unchecked items and explains sources/freshness. Tap items to confirm them; all checked suppresses the alert. My things edits everyday/routine items and opens last confirmation/recorded-location details. Settings manages context, Home setup, approved preferences and actual model readiness.
 4. Close/reopen the app and confirm setup/items persist. After Home and native access are configured, use Send a test reminder; this tests notification delivery, not geofencing.
-5. On a physical phone, test known Home entry → exit, one reminder per outing, stable return → another outing, then pause/off and permission revocation. Calendar and weather are optional; saved essentials remain available offline or without AI.
+5. On a physical phone, test selected saved-area entry → exit with one unchecked item, then all checked, return/reset, Got it, pause/off and permission revocation. The iOS 27 simulator currently reports circular-region monitoring unavailable, so use it for UI and test notifications rather than proof of an actual exit. Calendar and weather are optional; saved essentials remain available offline or without AI.
 
 Outie cannot establish that an untracked item was physically left behind. Area exits are approximate and OS background execution is best effort. Weather requests share Home coordinates only after rain reminders are explicitly enabled.
 
@@ -45,7 +49,7 @@ npx expo-doctor
 npx expo export --platform web
 ```
 
-Thirty-six tests cover state/storage invariants, migration, every-outing policy, duplicate/pause handling, rain/stale/offline context, validated semantic matching, context reuse and monitoring cleanup. Native and visual evidence: `../TESTING.md`.
+Forty-one tests cover state/storage invariants, migration, every-outing policy, duplicate/pause handling, rain/stale/offline context, validated semantic matching, context reuse and monitoring cleanup. Native and visual evidence: `../TESTING.md`.
 
 ## Structure
 

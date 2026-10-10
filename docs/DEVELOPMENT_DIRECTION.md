@@ -1,5 +1,7 @@
 # Updated development direction — October 9, 2026
 
+**Current behavior (0.5.0):** [Unchecked reminders and item evidence](UNCHECKED_REMINDERS.md) supersedes conflicting earlier policy below. Current-outing confirmations filter exit alerts; all checked suppresses delivery. Selected saved areas, historical confirmation/recorded-location details and matching-reminder acknowledgement are implemented. See TESTING.md for 52-test/native notification evidence and the simulator geofencing limitation. Earlier design/roadmap sections remain historical.
+
 ## Latest user direction — October 10, 2026
 
 Use [Simple Outie outing reminders](SIMPLE_OUTING_PLAN.md) for upcoming product changes. The user selected reminders for every outing, their essentials plus contextual local-AI suggestions, and Open-Meteo weather for the noncommercial demo. Daily activity entry and checklist maintenance are no longer the primary workflow. This replaces the previous checklist-first redesign; earlier evidence below remains historical, and existing physical acceptance gates still apply.

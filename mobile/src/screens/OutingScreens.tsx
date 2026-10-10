@@ -5,8 +5,10 @@ import { Screen, Copy, Title, SectionTitle, Button, Action, Panel, Row, Field } 
 import { Icon } from "../components/Icon";
 import { colors as c } from "../design/tokens";
 import { usePreparation } from "../data/store";
-import { homePlace, reminderPreview } from "../services/outing-policy";
-import { monitoringSetup } from "../services/monitoring";
+import { homePlace, reminderPreview, monitoredPlaces } from "../services/outing-policy";
+import { useOutingClock } from "../components/useOutingClock";
+import { itemChecked } from "../services/checks";
+import { locatedPlaces, monitoringSetup } from "../services/monitoring";
 import * as device from "../services/device";
 import type { ContextItem, OutingReminder, Routine } from "../data/outing";
 import { IntelligenceStatus } from "../components/FunctionalControls";
@@ -35,9 +37,9 @@ function ReminderBoard({ reminder, sample = false, saved = false }: { reminder: 
       {"\n"}Less left behind.</Copy>
     <View style={{ borderTopWidth: 1, borderColor: "#444A49", paddingTop: 18, gap: 8 }}>
       <Copy size={17} weight="600" style={{ color: "white" }}>{reminder.title}</Copy>
-      <Copy size={16} style={{ color: "#DEE3E1" }}>{reminder.items.length ? reminder.body : "Add your everyday essentials. We’ll remind you when you leave Home."}</Copy>
+      <Copy size={16} style={{ color: "#DEE3E1" }}>{reminder.body}</Copy>
     </View>
-    <Copy size={12} style={{ color: "#B8C0BC" }}>{sample ? "Example context · departure simulated" : "One reminder per outing. No daily checklist needed."}</Copy>
+    <Copy size={12} style={{ color: "#B8C0BC" }}>{sample ? "Example context · departure simulated" : "Only unchecked items trigger a departure reminder."}</Copy>
   </View>;
 }
 function ReadyStatus({ interactive = true }: { interactive?: boolean }) {
@@ -46,7 +48,7 @@ function ReadyStatus({ interactive = true }: { interactive?: boolean }) {
   const ready = status === "active" && !integrationError && Platform.OS !== "web";
   const title = Platform.OS === "web" ? "Preview on the web" : state.paused ? "Reminders paused" : ready ? "Reminders are on" : !state.outing.enabled ? "Finish reminder setup" : "Reminders need attention";
   const detail = Platform.OS === "web" ? "Departure detection and Apple Intelligence run in the iPhone app." : integrationError ||
-    (state.paused ? "Resume when you’re ready to head out." : ready ? "We’ll remind you after a detected Home-area exit." : status === "needs-place" ? "Save your Home location." : status === "needs-notifications" ? "Allow notifications in iPhone Settings." : status === "needs-background-access" ? "Choose Always location access in iPhone Settings." : state.outing.enabled ? "Checking system access and monitoring…" : "Save Home and allow notifications and background location.");
+    (state.paused ? "Resume when you’re ready to head out." : ready ? "We’ll remind you of unchecked things after a selected-area exit." : status === "needs-place" ? "Save and select a location to watch." : status === "needs-notifications" ? "Allow notifications in iPhone Settings." : status === "needs-background-access" ? "Choose Always location access in iPhone Settings." : state.outing.enabled ? "Checking system access and monitoring…" : "Save a place, then allow notifications and background location.");
   return <Panel><Row title={title} detail={detail} icon={ready ? "check" : "bell"}
     onPress={interactive ? () => router.push("/reminders") : undefined} /></Panel>;
 }
@@ -61,7 +63,7 @@ export function Welcome() {
       <Copy size={28} weight="700">Outie</Copy>
     </View>
     <Title>Remember what matters{ "\n"}when you head out.</Title>
-    <Copy muted>Your everyday things, the weather, and what’s on your calendar. One helpful reminder when you leave Home.</Copy>
+    <Copy muted>Check your everyday things, with weather and calendar extras. Leave a selected place with something unchecked, and Outie reminds you.</Copy>
     <Button label={state.outing.onboardingComplete ? "Open my reminders" : state.outing.setupStep ? "Continue setup" : "Set up my reminders"} icon="door"
       testID="start-setup" onPress={() => router.replace(state.outing.onboardingComplete ? "/" : "/setup")} />
     <Action label="Try a permission-free example" onPress={() => router.push("/demo")} />
@@ -70,11 +72,10 @@ export function Welcome() {
   </Screen>;
 }
 export function Today() {
-  const { state, dispatch, contextBusy, refreshContext } = usePreparation();
+  const { state, dispatch, contextBusy, refreshContext, reloadSavedState } = usePreparation();
   const [message, setMessage] = useState("");
   const [testing, setTesting] = useState(false);
-  const [now, setNow] = useState(Date.now);
-  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(timer); }, []);
+  const [now, setNow] = useOutingClock();
   if (!state.outing.onboardingComplete) return <Redirect href="/welcome" />;
   const reminder = reminderPreview(state, now);
   const context = state.outing.context, home = homePlace(state);
@@ -83,7 +84,8 @@ export function Today() {
     setTesting(true); setMessage("");
     try {
       const id = await device.scheduleOuting(reminderPreview(state, Date.now(), `test-outing-${Date.now()}`), true);
-      setMessage(id ? "Test reminder scheduled. This tests notifications, not departure detection." : "Enable notifications to test your reminder.");
+      await reloadSavedState();
+      setMessage(id ? "Unchecked-item test reminder scheduled. This tests notifications, not departure detection." : "No test alert sent. Confirmed items are excluded; also check notification access.");
     } catch (e) { setMessage(e instanceof Error ? e.message : String(e)); }
     finally { setTesting(false); }
   }
@@ -95,10 +97,18 @@ export function Today() {
     <ReadyStatus />
     <ReminderBoard reminder={reminder} />
     <Button label={contextBusy ? "Updating today’s suggestions…" : "Refresh today’s suggestions"} disabled={contextBusy} secondary onPress={() => void refreshContext()} />
-    <SectionTitle>Why these things?</SectionTitle>
-    {!reminder.items.length && <Button label="Choose my everyday things" onPress={() => router.push("/essentials")} />}
-    {!!reminder.items.length && <Panel>{reminder.items.map((i, index) => <View key={`${i.name}-${index}`} style={{ paddingVertical: 14, gap: 4 }}>
-      <Copy weight="600">{i.name}</Copy><Copy size={14} muted>{i.reason}</Copy><Source item={i} />
+    <Action label={testing ? "Scheduling test…" : "Send a test reminder"} onPress={() => { if (!testing) void test(); }} />
+    {!!message && <Copy muted>{message}</Copy>}
+    <SectionTitle>Check before you leave</SectionTitle>
+    <Copy muted size={13}>Tap an item to confirm it for this outing. Only unchecked items appear in departure alerts.</Copy>
+    <Action label="Start a new outing · reset checks" onPress={() => { const at = Date.now(); setNow(at); void dispatch({ type: "newOuting", at }); }} />
+    {!reminder.allItems?.length && <Button label="Choose my everyday things" onPress={() => router.push("/essentials")} />}
+    {!!reminder.allItems?.length && <Panel>{reminder.allItems.map((i, index) => <View key={`${i.name}-${index}`} style={{ paddingVertical: 12, gap: 4 }}>
+      <Row title={i.name} detail={itemChecked(state, i.name, now) ? "Confirmed by you for this outing" : "Still unchecked"} checked={itemChecked(state, i.name, now)}
+        onPress={() => { const at = Date.now(); setNow(at); void dispatch({ type: "checkThing", name: i.name, checked: !itemChecked(state, i.name, at), checklistId: state.outing.checklist.id, at }); }}
+        trailing={<Icon name={itemChecked(state, i.name, now) ? "check" : "circle"} color={c.accent} />} />
+      <Copy size={14} muted>{i.reason}</Copy><Source item={i} />
+      <Action label={`Details for ${i.name}`} onPress={() => router.push({ pathname: "/thing", params: { name: i.name } })} />
       {i.source !== "routine" && <Action label={`Don’t suggest ${i.name}`} onPress={() => void dispatch({ type: "neverSuggest", name: i.name, enabled: true })} />}
     </View>)}</Panel>}
     <Copy muted size={13}>{contextBusy ? "Checking available context. Your essentials stay ready." : context?.modelStatus || "Your essentials work while context is being prepared."}</Copy>
@@ -108,25 +118,27 @@ export function Today() {
       <WeatherCredit />
     </>}
     <View style={{ flexDirection: "row", gap: 20, flexWrap: "wrap" }}>
-      <Action label={testing ? "Scheduling test…" : "Send a test reminder"} onPress={() => { if (!testing) void test(); }} />
       {state.outing.enabled && <Action label={state.paused ? "Resume reminders" : "Pause reminders"} onPress={() => void dispatch({ type: "pause", enabled: !state.paused })} />}
     </View>
-    {!!message && <Copy muted>{message}</Copy>}
-    {!!state.outing.history.length && <Panel><Row title="Last outing" detail={new Date(state.outing.history[0].createdAt).toLocaleString()} icon="clock" onPress={() => router.push({ pathname: "/reminder", params: { outingId: state.outing.history[0].id } })} /></Panel>}
+    {!!state.outing.history.length && <Panel><Row title={state.outing.history[0].test ? "Last notification test" : "Last outing"} detail={new Date(state.outing.history[0].createdAt).toLocaleString()} icon="clock" onPress={() => router.push({ pathname: "/reminder", params: { outingId: state.outing.history[0].id } })} /></Panel>}
   </Screen>;
 }
 export function MyThings() {
   const { state, dispatch } = usePreparation();
   const [name, setName] = useState("");
+  const [now] = useOutingClock();
   const [groupName, setGroupName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [groupItems, setGroupItems] = useState("");
   const [keywords, setKeywords] = useState("");
   return <Screen tab>
-    <Title>My things</Title><Copy muted>Choose once. Outie reminds you on every outing.</Copy>
+    <Title>My things</Title><Copy muted>Choose your things, then confirm them before an outing.</Copy>
     <SectionTitle>Everyday essentials</SectionTitle>
-    <Panel>{state.essentials.map(item => <Row key={item} title={item} detail="Included in every outing reminder" icon="bag"
-      trailing={<Action label="Remove" accessibilityLabel={`Remove ${item}`} onPress={() => void dispatch({ type: "removeEssential", name: item })} />} />)}
+    <Panel>{state.essentials.map(item => <View key={item}>
+      <Row title={item} detail={itemChecked(state, item, now) ? "Confirmed for this outing" : "Unchecked for this outing"} icon="bag"
+        trailing={<Action label="Remove" accessibilityLabel={`Remove ${item}`} onPress={() => void dispatch({ type: "removeEssential", name: item })} />} />
+      <Action label={`Details for ${item}`} onPress={() => router.push({ pathname: "/thing", params: { name: item } })} />
+    </View>)}
       {!state.essentials.length && <Copy muted>Add the things you tend to forget.</Copy>}
     </Panel>
     <Field label="Everyday item" value={name} onChange={setName} placeholder="Keys, wallet, glasses…" />
@@ -178,7 +190,7 @@ export function Setup() {
       <Copy muted size={13}>You can continue without Home and finish location setup later.</Copy>
     </>}
     {step === 1 && <>
-      <Copy muted>These are reminders, not a daily checklist. Select the things you want mentioned on every outing.</Copy>
+      <Copy muted>Choose what to check before an outing. Confirmed things won’t trigger departure reminders.</Copy>
       <Panel>{essentials.map(name => <Row key={name} title={name} checked={state.essentials.includes(name)}
         onPress={() => void dispatch({ type: state.essentials.includes(name) ? "removeEssential" : "essential", name })}
         trailing={<Icon name={state.essentials.includes(name) ? "check" : "circle"} color={state.essentials.includes(name) ? c.accent : c.slate} />} />)}</Panel>
@@ -220,7 +232,7 @@ export function Setup() {
 function EnableReminders({ onFinished }: { onFinished?: () => Promise<void> }) {
   const { state, dispatch } = usePreparation();
   const [busy, setBusy] = useState(false), [message, setMessage] = useState("");
-  const home = homePlace(state);
+  const selected = monitoredPlaces(state);
   async function enable() {
     setBusy(true); setMessage("");
     try {
@@ -234,14 +246,14 @@ function EnableReminders({ onFinished }: { onFinished?: () => Promise<void> }) {
       if (background !== "granted") { setMessage("Choose Always for Location in iPhone Settings. Your setup is saved; come back and try again."); return; }
       if (!await dispatch({ type: "outingEnabled", enabled: true })) return;
       if (onFinished) await onFinished();
-      else setMessage("Reminders enabled. Checking native monitoring…");
+      else setMessage("Your reminder preference is saved. The status above confirms whether monitoring is active.");
     } catch (e) { setMessage(e instanceof Error ? e.message : String(e)); }
     finally { setBusy(false); }
   }
   return <>
-    {!Number.isFinite(home?.latitude) && <Copy muted>Save your Home location before starting reminders.</Copy>}
+    {!selected.length && <Copy muted>Save and select a location before starting reminders.</Copy>}
     {!state.essentials.length && <Action label="Choose at least one everyday thing" onPress={() => router.push("/essentials")} />}
-    <Button label={busy ? "Checking access…" : "Start my departure reminders"} disabled={busy || !state.essentials.length || !Number.isFinite(home?.latitude) || Platform.OS === "web"} icon="bell" onPress={() => void enable()} />
+    <Button label={busy ? "Checking access…" : "Start my departure reminders"} disabled={busy || !state.essentials.length || !selected.length || Platform.OS === "web"} icon="bell" onPress={() => void enable()} />
     {!!message && <Copy muted>{message}</Copy>}
     {Platform.OS !== "web" && <Action label="Open iPhone Settings" onPress={() => void Linking.openSettings()} />}
   </>;
@@ -249,11 +261,17 @@ function EnableReminders({ onFinished }: { onFinished?: () => Promise<void> }) {
 export function Reminders() {
   const { state, dispatch } = usePreparation();
   const home = homePlace(state);
+  const locations = locatedPlaces(state);
   return <Screen>
-    <Title>Departure reminders</Title><Copy muted>One saved Home. One reminder for each outing.</Copy>
+    <Title>Departure reminders</Title><Copy muted>Leave a selected place with unchecked things, and Outie sends one reminder.</Copy>
     <ReadyStatus interactive={false} />
     <Panel><Row title={home?.name || "Save Home"} detail={Number.isFinite(home?.latitude) ? `${home!.radius} m area · location saved` : "Location not saved"} icon="home"
       onPress={async () => { if (await dispatch({ type: "setupStep", step: 0 })) router.push("/setup"); }} /></Panel>
+    <SectionTitle>Locations to watch</SectionTitle><Copy muted size={13}>Select up to 20 saved areas. A known entry is required before an exit can trigger an alert.</Copy>
+    <Panel>{locations.map(p => <Row key={p.id} title={p.name} detail={`${p.radius} m area`} checked={state.outing.monitoredPlaceIds.includes(p.id)}
+      onPress={() => void dispatch({ type: "monitoredPlaces", ids: state.outing.monitoredPlaceIds.includes(p.id) ? state.outing.monitoredPlaceIds.filter(id => id !== p.id) : [...state.outing.monitoredPlaceIds, p.id] })}
+      trailing={<Icon name={state.outing.monitoredPlaceIds.includes(p.id) ? "check" : "circle"} color={c.accent} />} />)}</Panel>
+    <Action label="Add or edit a saved location" onPress={() => router.push("/places")} />
     <EnableReminders />
     {state.outing.enabled && <>
       <Button label={state.paused ? "Resume reminders" : "Pause reminders"} secondary onPress={() => void dispatch({ type: "pause", enabled: !state.paused })} />
@@ -299,17 +317,25 @@ export function Settings() {
   </Screen>;
 }
 export function Reminder() {
-  const { state } = usePreparation();
-  const [now] = useState(Date.now);
+  const { state, dispatch } = usePreparation();
+  const [now, setNow] = useOutingClock();
   const { outingId } = useLocalSearchParams<{ outingId?: string }>();
   const test = outingId?.startsWith("test-outing-");
-  const reminder = test ? reminderPreview(state, now, outingId) : state.outing.history.find(r => r.id === outingId);
-  return <Screen><Title>{test ? "Test reminder" : "Your outing reminder"}</Title>
+  const reminder = state.outing.history.find(r => r.id === outingId) || (test ? reminderPreview(state, now, outingId) : undefined);
+  return <Screen>
+    <Title>{test ? "Test reminder" : "Your outing reminder"}</Title>
     {reminder ? <>
-      <Copy muted>{test ? "This is a notification test using your current routine." : `Saved ${new Date(reminder.createdAt).toLocaleString()}. These suggestions belong to that outing.`}</Copy>
+      <Copy muted>{test ? "A notification test using your current unchecked items." : `Saved ${new Date(reminder.createdAt).toLocaleString()}. These items were unchecked at departure.`}</Copy>
       <ReminderBoard reminder={reminder} saved />
+      {<Button label={reminder.acknowledgedAt ? "Acknowledged" : test ? "Got it · dismiss this test" : "Got it · acknowledge this outing"} disabled={!!reminder.acknowledgedAt} onPress={() => void dispatch({ type: "acknowledgeOuting", id: reminder.id, at: Date.now() })} />}
+      <Copy muted size={13}>Acknowledging dismisses this outing’s alert. It does not mark items checked or disable future reminders.</Copy>
+      {(reminder.checklistId === state.outing.checklist.id) && <Panel>
+        {(reminder.allItems || reminder.items).map(i => <Row key={i.name} title={i.name} checked={itemChecked(state, i.name, now)}
+          onPress={() => { const at = Date.now(); setNow(at); void dispatch({ type: "checkThing", name: i.name, checked: !itemChecked(state, i.name, at), checklistId: state.outing.checklist.id, at }); }}
+          trailing={<Icon name={itemChecked(state, i.name, now) ? "check" : "circle"} color={c.accent} />} />)}
+      </Panel>}
       <Panel>{reminder.items.map((i, n) => <View key={`${i.name}-${n}`} style={{ paddingVertical: 14, gap: 5 }}><Copy weight="600">{i.name}</Copy><Copy muted>{i.reason}</Copy><Source item={i} /></View>)}</Panel>
-    </> : <Copy muted>This outing is no longer in your recent history. Your current reminder is available on Today.</Copy>}
+    </> : <Copy muted>This outing is no longer in your recent history. Your current checklist is available on Today.</Copy>}
     <Button label="Open Today" onPress={() => router.replace("/")} />
   </Screen>;
 }

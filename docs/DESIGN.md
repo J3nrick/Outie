@@ -1,5 +1,7 @@
 # Approved design and milestone
 
+**Current behavior (0.5.0):** [Unchecked reminders and item evidence](UNCHECKED_REMINDERS.md) supersedes conflicting earlier policy below. Current-outing confirmations filter exit alerts; all checked suppresses delivery. Selected saved areas, historical confirmation/recorded-location details and matching-reminder acknowledgement are implemented. See TESTING.md for 52-test/native notification evidence and the simulator geofencing limitation. Earlier design/roadmap sections remain historical.
+
 Approved in the design interview on October 9, 2026 (Asia/Manila).
 
 ## Latest direction — October 9, 2026

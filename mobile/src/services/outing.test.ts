@@ -90,7 +90,7 @@ test("v1 migration preserves records, selects existing Home but does not silentl
   s = reduce(s, { type: "toggle", id: s.personal!.items[0].id });
   const { outing: ignored, ...legacy } = s; void ignored;
   const restored = decodeSnapshot(JSON.stringify({ version: 1, revision: 8, state: legacy }));
-  assert.equal(restored.version, 2); assert.equal(restored.revision, 8);
+  assert.equal(restored.version, 3); assert.equal(restored.revision, 8);
   assert.equal(restored.state.outing.homeId, "home"); assert.equal(restored.state.outing.enabled, false);
   assert.equal(restored.state.personal!.items[0].status, "confirmed");
   assert.throws(() => decodeSnapshot(JSON.stringify({ version: 2, revision: 8, state: legacy })));

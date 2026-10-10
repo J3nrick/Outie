@@ -33,6 +33,7 @@ export default function Layout() {
               headerBackButtonDisplayMode: "minimal",
             }}
           >
+            <Stack.Screen name="thing" options={{ title: "Item details" }} />
             <Stack.Screen name="widgets" options={{ title: "Outie widgets" }} />
             <Stack.Screen name="reminder" options={{ title: "Outing reminder" }} />
             <Stack.Screen name="reminders" options={{ title: "Departure reminders", presentation: "modal" }} />

@@ -39,7 +39,7 @@ export function WidgetsGuide() {
     {placement === "home" ? <View accessibilityLabel={`Home Screen widget preview. ${props.count ? props.items.slice(0, 4).join(", ") : "Choose your everyday things"}. ${props.note}`} style={{ backgroundColor: c.ink, borderRadius: 26, padding: 22, gap: 14 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Icon name="door" color={c.accentOnDark} size={22} /><Copy weight="700" size={20} style={{ color: "white" }}>Before you go</Copy></View>
       <Copy size={14} style={{ color: "#D0D8D4" }}>{props.note}</Copy>
-      <Copy weight="600" style={{ color: "white" }}>{props.count ? props.items.slice(0, 4).join(" · ") + (props.count > 4 ? ` +${props.count - 4} more` : "") : "Choose your everyday things in Outie"}</Copy>
+      <Copy weight="600" style={{ color: "white" }}>{props.count ? props.items.slice(0, 4).join(" · ") + (props.count > 4 ? ` +${props.count - 4} more` : "") : props.total ? "Confirmed for this outing" : "Choose your everyday things in Outie"}</Copy>
       <Copy size={12} style={{ color: "#BCC6C1" }}>{props.updated}</Copy>
     </View> : <View style={{ borderRadius: 26, backgroundColor: "#DDE2E0", padding: 24, gap: 18, alignItems: "center" }}>
       <Copy size={40} weight="600" style={{ color: c.ink }}>9:41</Copy>
@@ -56,7 +56,7 @@ export function WidgetsGuide() {
       <View style={{ flex: 1, gap: 5 }}><Copy weight="600">{title}</Copy><Copy size={14} muted>{detail}</Copy></View>
     </View>)}</Panel>
     <SectionTitle>Keep it useful</SectionTitle>
-    <Copy muted size={14}>Widgets use the same saved suggestions as Today. Expired calendar and rain advice falls back to your everyday things. Refresh timing is controlled by iOS; a widget doesn’t detect a departure or prove something is packed.</Copy>
+    <Copy muted size={14}>Widgets use the same saved suggestions as Today. Widgets show what remains unchecked. Expired checks reset; stale calendar and rain advice is omitted. Refresh timing is controlled by iOS; a widget doesn’t detect a departure or prove something is packed.</Copy>
     <Copy muted size={14}>{support.detail}</Copy>
     {!!widgetError && <View accessibilityRole="alert"><Copy style={{ color: c.danger }}>Widget content needs attention: {widgetError}</Copy></View>}
     {!!widgetLastSync && <Copy size={13} muted>Content sent to widgets at {new Date(widgetLastSync).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. iOS decides when to display updates.</Copy>}

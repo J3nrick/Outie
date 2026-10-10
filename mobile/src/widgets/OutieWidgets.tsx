@@ -28,7 +28,7 @@ function HomeLayout(props: WidgetProps, environment: WidgetEnvironment) {
       {small ? visible.map((name, index) => <Text key={index} modifiers={[font({ textStyle: "subheadline", weight: "semibold" }), foregroundStyle(ink), lineLimit(1), privacySensitive()]}>{name}</Text>) :
         <Text modifiers={[font({ textStyle: "body", weight: "semibold" }), foregroundStyle(ink), lineLimit(2), privacySensitive()]}>{visible.join(" · ")}</Text>}
       {(count > visible.length || !small) && <Text modifiers={[font({ textStyle: "caption2" }), foregroundStyle(secondary), lineLimit(1)]}>{count > visible.length ? `+${count - visible.length} more` : `${count} ${count === 1 ? "thing" : "things"} to remember`}</Text>}
-    </VStack> : <Text modifiers={[font({ textStyle: "subheadline", weight: "semibold" }), foregroundStyle(ink), lineLimit(2)]}>Choose your everyday things in Outie</Text>}
+    </VStack> : <Text modifiers={[font({ textStyle: "subheadline", weight: "semibold" }), foregroundStyle(ink), lineLimit(2)]}>{props.total ? "Confirmed by you for this outing" : "Choose your everyday things in Outie"}</Text>}
     <Spacer />
     <HStack spacing={4}>
       <Text modifiers={[font({ textStyle: "caption2" }), foregroundStyle(secondary), lineLimit(1)]}>{props.updated || "Open Outie to get started"}</Text>

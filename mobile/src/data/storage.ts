@@ -1,6 +1,6 @@
 import { initialState, type State } from "./model.ts";
 import { defaultOuting } from "./outing.ts";
-export type Snapshot = { version: 2; revision: number; state: State };
+export type Snapshot = { version: 3; revision: number; state: State };
 function validOuting(o: State["outing"]) {
   const strings = (a: unknown): a is string[] => Array.isArray(a) && a.length <= 200 && a.every(x => typeof x === "string" && x.length <= 500);
   if (!o || typeof o.enabled !== "boolean" || typeof o.weatherEnabled !== "boolean" || typeof o.onboardingComplete !== "boolean" ||
@@ -10,6 +10,14 @@ function validOuting(o: State["outing"]) {
       !Array.isArray(o.history) || o.history.length > 20) return false;
   const validItems = (items: unknown): boolean => Array.isArray(items) && items.length <= 200 && items.every(i => i && typeof i.name === "string" && typeof i.reason === "string" && ["routine", "ai", "weather"].includes(i.source));
   if (!o.history.every(r => r && typeof r.id === "string" && Number.isFinite(r.createdAt) && typeof r.body === "string" && typeof r.title === "string" && validItems(r.items))) return false;
+  const cl = o.checklist;
+  if (!cl || typeof cl.id !== "string" || !Number.isInteger(cl.generation) || cl.generation < 0 || !Number.isFinite(cl.startedAt) ||
+      !Array.isArray(cl.checks) || cl.checks.length > 200 || !cl.checks.every(x => x && typeof x.key === "string" && Number.isFinite(x.confirmedAt)) ||
+      !strings(o.monitoredPlaceIds) || o.monitoredPlaceIds.length > 20 || !Array.isArray(o.evidence) || o.evidence.length > 200 ||
+      !o.evidence.every(e => e && typeof e.key === "string" && typeof e.name === "string" && (e.confirmedAt === undefined || Number.isFinite(e.confirmedAt)) &&
+        (!e.location || (typeof e.location.label === "string" && e.location.label.length <= 200 && Number.isFinite(e.location.at) && ["user", "phone"].includes(e.location.source) &&
+          (e.location.source !== "phone" || (Number.isFinite(e.location.latitude) && Math.abs(e.location.latitude!) <= 90 && Number.isFinite(e.location.longitude) && Math.abs(e.location.longitude!) <= 180)))))) return false;
+  if (!o.history.every(r => (!r.allItems || validItems(r.allItems)) && (r.checklistId === undefined || typeof r.checklistId === "string") && (r.acknowledgedAt === undefined || Number.isFinite(r.acknowledgedAt)) && (r.test === undefined || typeof r.test === "boolean"))) return false;
   const c = o.context;
   if (c !== null && (!c || typeof c.inputKey !== "string" || !Number.isFinite(c.preparedAt) || !Number.isFinite(c.expiresAt) ||
       c.expiresAt <= c.preparedAt || !validItems(c.items) || !Array.isArray(c.events) || c.events.length > 80 ||
@@ -24,7 +32,7 @@ export function decodeSnapshot(raw: string): Snapshot {
   const data = JSON.parse(raw) as { version: number; revision: number; state: State };
   const s = data?.state;
   if (
-    ![1, 2].includes(data.version) ||
+    ![1, 2, 3].includes(data.version) ||
     !Number.isInteger(data.revision) ||
     data.revision < 0 ||
     !s ||
@@ -74,6 +82,7 @@ export function decodeSnapshot(raw: string): Snapshot {
     outing = { ...defaultOuting(), homeId: home?.id ?? null };
     // Preserve old plans/preferences, but require an explicit opt-in to the changed reminder policy.
   }
+  if (data.version < 3 && outing) outing = { ...defaultOuting(), ...outing, checklist: defaultOuting().checklist, evidence: [], monitoredPlaceIds: outing.homeId ? [outing.homeId] : [] };
   if (!validOuting(outing)) throw new Error("Saved outing settings are invalid. Your data has not been replaced.");
-  return { ...data, version: 2, state: { ...initialState(), ...s, outing } };
+  return { ...data, version: 3, state: { ...initialState(), ...s, outing, automation: data.version < 3 && s.automation ? { ...s.automation, pending: undefined } : s.automation } };
 }

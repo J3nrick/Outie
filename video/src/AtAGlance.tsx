@@ -1,0 +1,2 @@
+import { Frame, PhoneCapture } from "./Frame";
+export const AtAGlance = () => <Frame title={"Before you go.\nAt a glance."} body="Home Screen and Lock Screen widgets show what remains unchecked. Find the setup guide in Settings." note="Lock Screen widgets keep item names and event titles private."><PhoneCapture src="captures/home-widget.png" left={1200} width={310} /><PhoneCapture src="captures/notification.png" left={1550} width={270} /></Frame>;

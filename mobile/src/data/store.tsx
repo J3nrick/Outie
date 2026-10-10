@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   useCallback,
   useContext,
@@ -31,6 +31,7 @@ const Context = createContext<{
   monitoringStatus: MonitoringStatus | null;
   contextBusy: boolean;
   refreshContext: () => Promise<void>;
+  reloadSavedState: () => Promise<void>;
   widgetError: string | null;
   widgetLastSync: number | null;
   refreshWidgets: () => Promise<void>;
@@ -131,7 +132,7 @@ export function PreparationProvider({ children }: { children: ReactNode }) {
         const current = await loadSnapshot();
         const next = reduce(current?.state ?? stateRef.current, action);
         await saveSnapshot(
-          { version: 2, revision: (current?.revision ?? 0) + 1, state: next },
+          { version: 3, revision: (current?.revision ?? 0) + 1, state: next },
           current?.revision ?? 0,
         );
         stateRef.current = next;
@@ -143,6 +144,15 @@ export function PreparationProvider({ children }: { children: ReactNode }) {
       }
     });
     return queue.current.then(() => applied);
+  }, []);
+  const reloadSavedState = useCallback(async () => {
+    queue.current = queue.current.then(async () => {
+      try {
+        const saved = await loadSnapshot();
+        if (saved) { stateRef.current = saved.state; setState(saved.state); }
+      } catch (error) { setError(`Could not reload saved records. ${String(error)}`); }
+    });
+    await queue.current;
   }, []);
   const refreshContext = useCallback(async () => {
     const snapshot = stateRef.current;
@@ -182,7 +192,7 @@ export function PreparationProvider({ children }: { children: ReactNode }) {
       </View>
     );
   return (
-    <Context.Provider value={{ state, dispatch, saveError, integrationError, monitoringStatus, contextBusy, refreshContext, widgetError, widgetLastSync, refreshWidgets }}>
+    <Context.Provider value={{ state, dispatch, saveError, integrationError, monitoringStatus, contextBusy, refreshContext, reloadSavedState, widgetError, widgetLastSync, refreshWidgets }}>
       {children}
     </Context.Provider>
   );

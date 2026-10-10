@@ -1,5 +1,17 @@
 # Environment validation — October 9, 2026
 
+## Unchecked-reminder simulator update — October 10
+
+Outie 0.5.0 compiled, installed and launched on iPhone 17 Pro / iOS 27.0 with simulator signing enabled (`CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=YES CODE_SIGN_IDENTITY=-`). Shared-widget entitlements remain present. The real OS test notification delivered an unchecked-only alert and its tap opened the saved reminder; the Lock Screen count reflected the unchecked item.
+
+**Observed limitation:** this simulator's `CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self)` returns false. Expo geofencing registration rejects with GeofencingUnavailable despite granted location access. The application exposes that unavailable status. Unit tests and OS notification delivery do not establish real automatic exits. Monitoring was turned off after testing; a temporary saved place was removed and simulated GPS cleared. No physical update was attempted, respecting the user's latest simulator-only preference.
+
+## Widget extension update — October 10
+
+Outie 0.4.0 adds Expo Widgets ~57.0.23, extension `ph.depart.preview.widgets` and App Group `group.ph.depart.preview`. Native small/medium Home Screen and rectangular Lock Screen widgets rendered and opened the app on iPhone 17 Pro/iOS 27.0. Simulator signing with local identity `-` was required to include the simulated App Group entitlement; unsigned builds did not receive the shared container.
+
+The connected SE (iOS 27.0.1) successfully built and provisioned both app/widget targets using the existing Personal Team, then received the update. Launch was denied because it was locked. The user requested finishing with simulator verification, so physical widget rendering/placement remains untested. This widget feature does not require Apple Intelligence to render saved essentials.
+
 ## Active React Native release — October 10
 
 Outie 0.3.0 uses Expo 57 / React Native 0.86.3 / TypeScript / Expo Router with SQLite, bundled Satoshi and a local Swift Foundation Models bridge. It targets iOS 18+; local Apple inference is runtime-gated to iOS 26+ and actual model availability. The SwiftUI deployment target and dependency-free evidence below apply only to the preserved reference app.

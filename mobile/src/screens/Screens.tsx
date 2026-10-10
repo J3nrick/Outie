@@ -1,4 +1,4 @@
-import React, { useState, useRef, useId, useEffect } from "react";
+import { useState, useRef, useId, useEffect } from "react";
 import {
   View,
   Switch,
@@ -909,9 +909,10 @@ export function Places() {
   return (
     <Screen legacyDemo>
       <Title>Your starting points</Title>
+      <Action label="Back to departure reminders" onPress={() => router.canGoBack() ? router.back() : router.replace("/reminders")} />
       <Copy muted>
         Save your current location for a place, then enable background
-        monitoring in Connections. Area exits are approximate.
+        monitoring in Departure reminders. Select which places to watch; area exits are approximate.
       </Copy>
       {state.places.length ? (
         <Panel>
@@ -993,7 +994,7 @@ export function Places() {
           setDescription("");
           setCoordinates(undefined);
           setLocationMessage(coordinates
-            ? "Place and GPS location saved. Review monitoring in Location connections."
+            ? "Place and GPS location saved. Select this place in Departure reminders."
             : "Place saved. Use my current location and save again to enable area monitoring.");
         }}
       />

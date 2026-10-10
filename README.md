@@ -8,9 +8,11 @@ A native, privacy-first iPhone preparation assistant for people who know where t
 
 ## Current application
 
-Outie sends one reminder per detected Home outing, combining chosen everyday things with relevant Calendar routines and rain advice. Users save Home and essentials once, then explicitly enable notifications and background location. No daily checklist or manually created activity is required.
+Outie reminds users about unchecked things when their phone leaves a selected saved area. Everyday essentials combine with relevant Calendar routines and rain advice. Users save their things and places, explicitly enable notifications/background location, and confirm items before leaving. Last confirmation and recorded location stay available in item details; Got it dismisses one reminder. Checks reset for a new outing or known return and expire after 12 hours. [Current check and evidence policy](docs/UNCHECKED_REMINDERS.md).
 
 The active app is in `mobile/`: React Native 0.86.3, Expo 57, TypeScript, Expo Router, native SQLite persistence, bundled Satoshi typography and Solar icons. Apple Foundation Models runs locally on compatible devices. Open-Meteo supplies optional weather after consent; unavailable context falls back to saved essentials. Existing plans and the SwiftUI reference remain preserved.
+
+Home Screen and Lock Screen widgets are now included, with a guide under Settings → Add Outie widgets. [Widget implementation and validation](docs/WIDGETS.md).
 
 Read [the current scope and evidence](docs/SIMPLE_OUTING_PLAN.md), [functional acceptance](docs/FUNCTIONAL_ACCEPTANCE.md) and [run instructions](mobile/README.md). Physical background departure and compatible-device inference acceptance are still required.
 

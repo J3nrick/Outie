@@ -16,3 +16,7 @@ test("connection errors remove nested prefixes while preserving the remedy", () 
     "Save failed: Error: disk full",
   );
 });
+
+test("native geofencing unavailability gives a usable remedy without a stack dump", () => {
+  assert.equal(errorMessage(new Error("FunctionCallException → GeofencingUnavailable: Geofencing is not available")), "Saved-area monitoring is unavailable on this device. Check Location Services and test departure alerts on a physical iPhone.");
+});

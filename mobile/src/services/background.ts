@@ -113,7 +113,11 @@ async function deliverPending() {
   )
     return;
   const delivered = await scheduleOuting(pending.reminder!, false);
-  if (!delivered) return;
+  if (!delivered) {
+    const latest = await loadSnapshot();
+    if (latest?.state.automation?.pending?.id === pending.id) await saveSnapshot({ ...latest, revision: latest.revision + 1, state: { ...latest.state, automation: { ...latest.state.automation, pending: undefined } } }, latest.revision);
+    return;
+  }
   const latest = await loadSnapshot();
   if (latest?.state.automation?.pending?.id !== pending.id) return;
   await saveSnapshot(

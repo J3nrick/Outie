@@ -1,5 +1,7 @@
 # DEPART — proactive departure assistant
 
+**Current behavior (0.5.0):** [Unchecked reminders and item evidence](UNCHECKED_REMINDERS.md) supersedes conflicting earlier policy below. Current-outing confirmations filter exit alerts; all checked suppresses delivery. Selected saved areas, historical confirmation/recorded-location details and matching-reminder acknowledgement are implemented. See TESTING.md for 52-test/native notification evidence and the simulator geofencing limitation. Earlier design/roadmap sections remain historical.
+
 Revised October 9, 2026, Asia/Manila. The user selected both phone-only preparation alerts and later tracker-assisted separation detection. This is a scope/design revision; none of the new automation is represented as implemented.
 
 ## Product promise

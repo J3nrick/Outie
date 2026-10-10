@@ -2,6 +2,10 @@
 
 Revised October 10, 2026, Asia/Manila. This is the latest product direction and replaces the checklist-first journey and four-tab proposal in FINAL_REDESIGN_PLAN.md. The core flow is implemented in the React Native app. See the implementation evidence below; real physical departure delivery remains an acceptance gate.
 
+## Latest policy update
+
+The user subsequently requested unchecked-item departure alerts and restored item confirmation/location/time/acknowledgement controls. See UNCHECKED_REMINDERS.md; it supersedes the no-checklist/every-outing notification contract below. Existing data and native widgets are retained.
+
 ## Product promise
 
 **When you head out, Outie reminds you what matters for today.**

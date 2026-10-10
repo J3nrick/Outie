@@ -14,11 +14,12 @@ export function OutingDemo() {
   const [step, setStep] = useState(0), [busy, setBusy] = useState(false);
   const [context, setContext] = useState<OutingContext | null>(null);
   const [now] = useState(Date.now);
+  const [keysChecked, setKeysChecked] = useState(false);
   const sample = initialState();
   sample.essentials = ["Keys", "Wallet"];
   sample.places = [{ id: "sample-home", name: "Home", description: "Sample location", radius: 200, latitude: 14.55, longitude: 121.02 }];
   sample.connections.Calendar = true;
-  sample.outing = { ...sample.outing, homeId: "sample-home", weatherEnabled: true,
+  sample.outing = { ...sample.outing, checklist: { id: "sample-checklist", generation: 0, startedAt: now, checks: keysChecked ? [{ key: "keys", confirmedAt: now }] : [] }, homeId: "sample-home", weatherEnabled: true,
     routines: [{ id: "school", name: "School", keywords: ["class"], items: ["School ID", "Calculator"] }], context };
   const events = [{ id: "sample-class", title: "Math class", destination: "School", startsAt: new Date(now + 3600000).toISOString(), endsAt: new Date(now + 7200000).toISOString() }];
   const forecast = { provider: "Open-Meteo" as const, latitude: 14.55, longitude: 121.02, fetchedAt: now, utcOffsetSeconds: 28800,
@@ -45,6 +46,7 @@ export function OutingDemo() {
       <Panel><Copy weight="600">Your sample essentials</Copy><Copy>Keys, wallet</Copy><Copy weight="600">School routine</Copy><Copy>School ID, calculator</Copy><Copy weight="600">Today’s example</Copy><Copy>Math class in an hour. An 80% rain probability near Home.</Copy></Panel>
       <Button label={busy ? "Preparing on-device suggestions…" : "Try Apple Intelligence with this sample"} secondary disabled={busy} onPress={() => void generate()} />
       {!!context && <Copy muted>{context.modelStatus}. The event and weather remain sample data.</Copy>}
+      <Button label={keysChecked ? "Sample Keys confirmed · uncheck" : "Confirm sample Keys for this outing"} secondary onPress={() => setKeysChecked(!keysChecked)} />
       <Button label="Preview leaving Home" disabled={busy} onPress={() => setStep(1)} />
     </>}
     {step === 1 && <>
@@ -56,10 +58,10 @@ export function OutingDemo() {
       <Button label="See how it works" onPress={() => setStep(2)} />
     </>}
     {step === 2 && <>
-      <Panel><Copy>Save Home and the things you tend to forget. Outie combines them with relevant calendar and weather context, then sends one reminder per outing.</Copy></Panel>
-      <Copy muted>No daily checklist needed. Local AI runs on supported iPhones; saved essentials work without it.</Copy>
+      <Panel><Copy>Save Home and the things you tend to forget. Outie combines them with relevant calendar and weather context, then reminds you only about things left unchecked when you leave.</Copy></Panel>
+      <Copy muted>Checks apply to one outing. Local AI runs on supported iPhones; saved essentials work without it.</Copy>
       <Button label="Set up my reminders" onPress={() => router.replace("/setup")} />
-      <Action label="Replay the example" onPress={() => { setStep(0); setContext(null); }} />
+      <Action label="Replay the example" onPress={() => { setStep(0); setContext(null); setKeysChecked(false); }} />
     </>}
     <Action label="Return to Outie" onPress={() => router.back()} />
   </Screen>;
