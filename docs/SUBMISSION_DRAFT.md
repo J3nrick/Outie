@@ -47,29 +47,11 @@ Scenario: the developer is attending AppBuilders PH Hackathon in Makati at 1:00 
 
 ## The disclosures
 
-### Models used
-
-The app uses Apple's on-device system language model through Foundation Models, `SystemLanguageModel.default` and `LanguageModelSession`, with guided structured generation. It interprets supplied calendar context, matches approved routines and proposes bounded extra belongings. Generated results are validated before use. No custom training, fine-tuning, downloaded third-party language model, or cloud language-model fallback is used. Weather advice is based on forecast rules, not invented by the model.
-
-The retained native Vision comparison path uses Apple's image feature-print API. It is not part of the current core outing demo and does not provide calibrated automatic identification or proof that an object was packed.
-
-### Technologies and frameworks
-
-React Native 0.86.3, React 19.2.3, Expo SDK 57, TypeScript 6 and Expo Router form the active application. Expo modules provide SQLite persistence, Calendar, Location, Notifications, Task Manager/BackgroundTask, Widgets, local files and fonts. Reanimated, Expo Blur/GlassEffect and React Native SVG support the interface. A local Swift Expo module bridges Foundation Models and Vision. iOS widgets share saved data through an App Group. The preserved SwiftUI/SwiftData application is a separate reference implementation.
-
-### APIs and cloud services
-
-Open-Meteo's forecast API supplies optional hourly precipitation probability and precipitation data after opt-in. Weather attribution is included in-app. Native Apple services supply permission-controlled calendar reads, location monitoring and local notifications. No OpenAI API, cloud LLM, Private Cloud Compute, WeatherKit, analytics backend or tracker service is configured for the current core product.
-
-### Existing code and assets
-
-The initial project repository was empty, according to the recorded environment report. Requirements came from the supplied DEPART brief. The active app uses Expo scaffold code and open-source dependencies; those are third-party code, not original application work. The earlier SwiftUI implementation and earlier React Native work were retained and extended. Confirm the organizer's build-window disclosure against the actual commit history before making a timing claim.
-
-Bundled Solar icons are by 480 Design under CC BY 4.0, with attribution. Satoshi font files were supplied by the user and retain their Fontshare/Indian Type Foundry license. The Outie doorway mascot/icon was created with OpenAI's built-in image-generation tool, using an indie-icon collage as visual direction; it is not a hand-drawn asset. Demo events, belongings and forecasts are fixtures and are labelled as such. Dependency and asset notices remain applicable.
-
-### AI development tools
-
-The developer confirms that Codex and ChatGPT were the only AI development tools used. OpenAI Codex assisted with implementation, tests, documentation and this demo script. OpenAI's built-in image-generation tool created the app icon; its underlying model identifier was not recorded. These tools assisted development and asset creation; they are not runtime cloud-AI dependencies of Outie.
+- **Models used:** Apple's on-device Foundation Models language model on supported iPhones. No custom training or cloud AI. Retained Vision image comparison is outside the core demo.
+- **Technologies and frameworks:** React Native, Expo, TypeScript, Expo Router, SQLite, Swift, Reanimated and iOS widgets.
+- **APIs and cloud services:** Apple Calendar, Location and local Notifications; optional Open-Meteo weather requests share forecast coordinates. Fresh weather requires internet.
+- **Existing code and assets:** Expo scaffold and open-source packages; earlier DEPART implementations retained. Solar icons by 480 Design (CC BY 4.0), licensed Satoshi fonts, and an OpenAI-generated app icon. Demo fixtures are labelled.
+- **AI development tools:** Codex and ChatGPT only, with OpenAI's built-in image generation used for the icon.
 
 ## Remaining submission items
 

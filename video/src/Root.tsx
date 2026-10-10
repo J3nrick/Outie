@@ -8,15 +8,12 @@ import { CheckAndRemind } from "./CheckAndRemind";
 import { AtAGlance } from "./AtAGlance";
 import { Closing } from "./Closing";
 import {OutiePromo} from './promo/OutiePromo';
-import {Hook} from './promo/Hook';
-import {Meet} from './promo/Meet';
-import {Things} from './promo/Things';
-import {Context} from './promo/Context';
-import {Departure} from './promo/Departure';
-import {Checks} from './promo/Checks';
-import {Widgets} from './promo/Widgets';
-import {Finale} from './promo/Finale';
-import {Momentum} from './promo/Momentum';
+import {ScriptOpening} from './hackathon/Opening';
+import {ScriptSetup} from './hackathon/Setup';
+import {ScriptContext} from './hackathon/Context';
+import {ScriptReminder} from './hackathon/Reminder';
+import {ScriptControl} from './hackathon/Control';
+import {ScriptClosing} from './hackathon/Closing';
 export const OutieDemo = () => {
   const { fps } = useVideoConfig();
   return <TransitionSeries>
@@ -34,17 +31,14 @@ export const OutieDemo = () => {
   </TransitionSeries>;
 };
 export const RemotionRoot = () => <>
-  <Composition id="OutiePromo" component={OutiePromo} durationInFrames={1800} fps={30} width={1920} height={1080} />
-  <Folder name="Promo-scenes">
-    <Composition id="PromoHook" component={Hook} durationInFrames={169} fps={30} width={1920} height={1080}/>
-    <Composition id="PromoMeet" component={Meet} durationInFrames={112} fps={30} width={1920} height={1080}/>
-    <Composition id="PromoThings" component={Things} durationInFrames={225} fps={30} width={1920} height={1080}/>
-    <Composition id="PromoContext" component={Context} durationInFrames={281} fps={30} width={1920} height={1080}/>
-    <Composition id="PromoDeparture" component={Departure} durationInFrames={225} fps={30} width={1920} height={1080}/>
-    <Composition id="PromoChecks" component={Checks} durationInFrames={169} fps={30} width={1920} height={1080}/>
-    <Composition id="PromoWidgets" component={Widgets} durationInFrames={225} fps={30} width={1920} height={1080}/>
-    <Composition id="PromoMomentum" component={Momentum} durationInFrames={169} fps={30} width={1920} height={1080}/>
-    <Composition id="PromoFinale" component={Finale} durationInFrames={225} fps={30} width={1920} height={1080}/>
+  <Composition id="OutiePromo" component={OutiePromo} defaultProps={{voiceoverSrc:"audio/outie-haven-aligned.wav",voiceoverVolume:1,musicVolume:0.82}} durationInFrames={1800} fps={30} width={1920} height={1080} />
+  <Folder name="Script-scenes">
+    <Composition id="ScriptOpening" component={ScriptOpening} durationInFrames={300} fps={30} width={1920} height={1080}/>
+    <Composition id="ScriptSetup" component={ScriptSetup} durationInFrames={300} fps={30} width={1920} height={1080}/>
+    <Composition id="ScriptContext" component={ScriptContext} durationInFrames={360} fps={30} width={1920} height={1080}/>
+    <Composition id="ScriptReminder" component={ScriptReminder} durationInFrames={360} fps={30} width={1920} height={1080}/>
+    <Composition id="ScriptControl" component={ScriptControl} durationInFrames={300} fps={30} width={1920} height={1080}/>
+    <Composition id="ScriptClosing" component={ScriptClosing} durationInFrames={180} fps={30} width={1920} height={1080}/>
   </Folder>
   <Composition id="OutieDemo" component={OutieDemo} durationInFrames={1800} fps={30} width={1920} height={1080} />
   <Folder name="Scenes">

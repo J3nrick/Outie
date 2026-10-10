@@ -2,47 +2,36 @@
 
 Two editable 60-second, 1920 × 1080 Remotion compositions at 30 fps:
 
-- **OutiePromo**: nine-chapter brand film with beat-aligned kinetic typography, dimensional app captures, contextual motion graphics, a widget close-up, and an original uplifting score.
-- **OutieDemo**: the original caption-led product walkthrough, preserved without audio.
+- **OutiePromo**: the user's six-part hackathon narration script, with animated product walkthroughs, a charger-cable visual thread, dimensional phones, actual model-status capture, and original music.
+- **OutieDemo**: the original product walkthrough, preserved without audio.
 
-Run from this folder:
+Run `npm ci` and `npm run dev` from this folder. Open OutiePromo in Studio. Each of its six scenes has an independent composition in Script-scenes. Run `npm run typecheck` to validate source. Studio's Render control exports the reviewed composition.
 
-    npm ci
-    npm run dev
+## Six-part edit
 
-Open OutiePromo in Studio. Individual scenes are registered for independent editing. Run `npm run typecheck` to validate source. Use Studio’s Render control to export the reviewed composition as H.264 MP4.
-
-## Promotional sequence
-
-| Time | Scene |
+| Time | Story |
 | --- | --- |
-| 0–5.63 s | Halfway out. Keys still in. |
-| 5.63–9.37 s | Meet Outie |
-| 9.37–16.87 s | Personal essentials and routines |
-| 16.87–26.23 s | Context inputs and actual local AI demonstration |
-| 26.23–33.73 s | Illustrated departure reminder |
-| 33.73–39.37 s | One tap, one less reminder |
-| 39.37–46.87 s | Home Screen and Lock Screen widgets |
-| 46.87–52.5 s | Less backtracking. More getting there. |
-| 52.5–60 s | Head out. Less left behind. |
+| 0–10 s | Welcome, Today, AppBuilders PH Hackathon in Makati at 1 PM; the charger joke |
+| 10–20 s | Save Home; keys, wallet, laptop, charger; the backlog joke |
+| 20–32 s | Connected Calendar, sample event, refresh, local AI and reviewable reasons |
+| 32–44 s | Reminder preview and reasons; code committed versus laptop packed |
+| 44–54 s | Actual captured model readiness, saved essentials, editing and pause |
+| 54–60 s | Today reminder, icon and “Head out. Less left behind.” |
 
-Important timing is authored as integer frames, aligning 32 musical bars at 128 BPM to the 30 fps timeline within one frame. All animations are driven by Remotion frames; no CSS animation clocks are used.
+The recorded narration and integration notes are in `VOICEOVER_SCRIPT.md`. The supplied Haven Sands ElevenLabs recording is now included. Its 49.084-second source is placed across the film using local word timestamps and silence boundaries, with no speech time-stretching. The original recording is preserved. Six scene boundaries follow the supplied schedule exactly; source edits are frame-driven, with no CSS animation clocks.
 
-Captures in `public/captures` are actual simulator captures. The departure graphic and its reminder are labelled illustrated examples using sample context. Model compatibility and permissions are disclosed in relevant scenes. The promo does not present screenshots as a recorded physical departure. The widget close-up crops the actual captured widget rather than rebuilding its displayed data.
+## Visuals and provenance
 
-## Original soundtrack
+The hackathon walkthrough uses illustrated app screens based on the current app and clearly labelled sample context. Example ID/notebook suggestions illustrate the script; they are not presented as the output of a new hackathon inference call. The Settings model-status screen is an actual iPhone simulator capture from this revision, showing “On-device model ready.” Its close-up crops the captured image. Other actual captures remain for OutieDemo. The film does not claim a recorded physical departure.
 
-`python3 scripts/make_score.py` regenerates two synchronized 60-second stereo PCM stems at 44.1 kHz:
+Outie's icon and Satoshi fonts are reused from the app; the font licence remains in `public/fonts`. Solar icon paths are from the bundled app set ([Solar / Iconify](https://icon-sets.iconify.design/solar/), CC BY 4.0). Key, wallet, laptop, cable, and charger illustrations are authored SVG/CSS.
 
-- `public/audio/outie-uplift.wav`: an authored D-major arrangement at 128 BPM. Piano-like plucks, glass arpeggios, warm pads, a syncopated bass groove, tight drums, a halftime bridge, and a final tonic resolution.
-- `public/audio/outie-motion-fx.wav`: a recurring three-note reminder signature and transition sweeps at the visual cues.
+## Audio
 
-Both stems are deterministic synthesis with no sampled songs, external recordings, or API calls. Music and effects have independent volume controls on their Audio nodes. Their composition volumes preserve output headroom; starts and tails are faded to avoid clicks. The film uses music and on-screen copy without narration.
+The active score is **Head Out**, an original 120 BPM, D-major, 30-bar composition. Its musical chapters follow the six-part script exactly. A plucked call-and-response hook, syncopated piano, rounded bass, layered claps and shakers, stereo strings, and a quieter control chapter lead into the final major-chord release. `python3 scripts/make_forward_score.py` regenerates `public/audio/outie-forward.wav`.
 
-Outie's icon and Satoshi fonts are reused from the mobile app; the font licence is retained in `public/fonts`. Solar paths are reused from the app's bundled Solar set ([Solar / Iconify](https://icon-sets.iconify.design/solar/), CC BY 4.0). The key, wallet and umbrella drawings are custom SVG illustrations for the video.
-
-The first promotional version was backed up outside the project during this revision. Its unused audio and animation helpers were removed from the active video source.
+`python3 scripts/make_script_fx.py` regenerates quiet chimes and transitions aligned to the script. Both are deterministic synthesis without sampled songs or external recordings. Music uses a base volume of 0.82. A non-empty `voiceoverSrc` applies a 0.20 narration multiplier (effective music level 0.164); effects use 0.7. Narration is normalized toward −17 LUFS with a −2 dBTP ceiling before alignment. Run `python3 scripts/align_haven_voiceover.py` to regenerate the aligned narration. `OutiePromo` defaults to `audio/outie-haven-aligned.wav`.
 
 ## Validation
 
-TypeScript passes. Representative 1920 × 1080 frames and transition boundary frames were rendered and visually inspected. PCM duration, stereo format, peak and RMS levels were checked. Studio metadata confirms 1800 frames at 30 fps, 1920 × 1080, with no runtime error overlay. The composition remains an interactive Studio preview; a full MP4 export has not been made in this design pass.
+TypeScript passes. Twelve Full HD frames of this revision were rendered and visually reviewed, including the charger, Calendar flow, alternate phone layout, reminder close-up, and finale. The new score and cue track are both 60-second stereo PCM at 44.1 kHz. Their combined music-only peak is below full scale at the authored gains. The previous edit is backed up outside the active source. The music-only MP4 and a separate narrated MP4 have been exported. The narrated export reuses the unchanged H.264 visual stream and adds a newly mixed stereo AAC track. It is exactly 60 seconds, 1920 × 1080, 30 fps, and 1,800 frames. The PCM mix peak is 0.9034 (below clipping). `python3 scripts/mix_haven_export.py` reproduces this audio export from `../build/Outie-Promo-60s.mp4`; a full Remotion render uses the same source gains and aligned narration. TypeScript passes after integration.
